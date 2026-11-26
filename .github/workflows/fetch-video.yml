@@ -1,0 +1,45 @@
+name: fetch-video
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/fetch-video.yml'
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch video and build page
+        run: |
+          curl -fL --retry 3 -o infinite-ev.mp4 https://h.uguu.se/YnrVFCODrvvw.mp4
+          echo "490e1c27f22df00ca01284f87d420f0261ae5dbd00a2d452525b25c153a46d08  infinite-ev.mp4" | sha256sum -c -
+          git rm -q --ignore-unmatch 1-index.html
+          cat > index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Infinite EV</title>
+          <style>
+          html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,sans-serif}
+          main{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+          h1{font-size:1.4rem;margin:0 0 12px;letter-spacing:.04em}
+          video{width:100%;max-width:1280px;height:auto;max-height:80vh;background:#000}
+          </style>
+          </head>
+          <body>
+          <main>
+          <h1>Infinite EV</h1>
+          <video controls playsinline preload="metadata" src="infinite-ev.mp4"></video>
+          </main>
+          </body>
+          </html>
+          HTML
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add infinite-ev.mp4 index.html
+          git commit -m "Add Infinite EV video and page"
+          git push
